@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay Calendar - Community Events</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D32F2F;
+            --primary-dark: #B71C1C;
+            --secondary: #1976D2;
+            --accent: #FFC107;
+            --bg-main: #FFF8E1;
+            --bg-card: #FFFFFF;
+            --text-dark: #212121;
+            --text-light: #757575;
+            --border: #E0E0E0;
+            --success: #388E3C;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--bg-main) 0%, #FFFDE7 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(211, 47, 47, 0.02) 35px, rgba(211, 47, 47, 0.02) 70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--secondary) 50%, var(--accent) 100%);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            margin: 2rem 0;
+            border-radius: 12px;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            box-shadow: 0 2px 12px var(--shadow);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-main);
+            color: var(--text-dark);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
+        /* View Sections */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .event-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px var(--shadow);
+            transition: all 0.3s ease;
+            border-top: 5px solid var(--primary);
+            position: relative;
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px var(--shadow-hover);
+        }
+
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .event-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, #1565C0 100%);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .event-date {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.75rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .event-day {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            line-height: 1;
+            display: block;
+        }
+
+        .event-month {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.95;
+        }
+
+        .event-info {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .event-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            letter-spacing: 1px;
+        }
+
+        .event-time {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .event-body {
+            padding: 1.5rem;
+        }
+
+        .event-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .event-location {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-category {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--text-dark);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+
+        .no-events-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .no-events h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-events p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: #FFCDD2;
+            color: #C62828;
+            border-left: 4px solid #F44336;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-light);
+            margin-top: 3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .logo {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">B</div>
+                    <div>
+                        <h1>Barangay Calendar</h1>
+                        <div class="subtitle">Community Events & Activities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchView('calendar')">📅 Calendar View</button>
+            <button class="tab-btn" onclick="switchView('upcoming')">⏰ Upcoming Events</button>
+            <button class="tab-btn" onclick="switchView('past')">📜 Past Events</button>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertBox" class="alert"></div>
+
+        <!-- Calendar View -->
+        <div id="calendarView" class="view-section active">
+            <div id="calendarContent" class="calendar-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading events...
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events View -->
+        <div id="upcomingView" class="view-section">
+            <div id="upcomingContent" class="calendar-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading upcoming events...
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Events View -->
+        <div id="pastView" class="view-section">
+            <div id="pastContent" class="calendar-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading past events...
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 Barangay Calendar. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - these should match the admin panel settings
+        let config = {
+            sheetId: localStorage.getItem('sheetId') || '',
+            apiKey: localStorage.getItem('apiKey') || ''
+        };
+
+        let events = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            // Refresh events every 5 minutes
+            setInterval(loadEvents, 300000);
+        });
+
+        // Load Events from Google Sheets
+        async function loadEvents() {
+            if (!config.sheetId || !config.apiKey) {
+                showAlert('Calendar configuration is missing. Please contact the administrator.', 'error');
+                renderEmptyState();
+                return;
+            }
+
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A2:G?key=${config.apiKey}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data from Google Sheets');
+                }
+
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    events = [];
+                    renderEvents();
+                    return;
+                }
+
+                events = data.values.map((row, index) => ({
+                    rowIndex: index + 2,
+                    title: row[0] || '',
+                    date: row[1] || '',
+                    time: row[2] || '',
+                    location: row[3] || '',
+                    description: row[4] || '',
+                    category: row[5] || 'Other',
+                    status: row[6] || 'active'
+                }));
+
+                renderEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events. Please try again later.', 'error');
+                renderEmptyState();
+            }
+        }
+
+        // Render Events
+        function renderEvents() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const activeEvents = events.filter(e => e.status === 'active');
+            const upcomingEvents = activeEvents.filter(e => new Date(e.date) >= now);
+            const pastEvents = activeEvents.filter(e => new Date(e.date) < now);
+
+            // Sort by date
+            upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Render calendar view (all active events)
+            renderEventCards('calendarContent', activeEvents);
+            
+            // Render upcoming events
+            renderEventCards('upcomingContent', upcomingEvents);
+            
+            // Render past events
+            renderEventCards('pastContent', pastEvents);
+        }
+
+        // Render Event Cards
+        function renderEventCards(containerId, eventList) {
+            const container = document.getElementById(containerId);
+            
+            if (eventList.length === 0) {
+                container.innerHTML = `
+                    <div class="no-events">
+                        <div class="no-events-icon">📅</div>
+                        <h3>No Events Found</h3>
+                        <p>There are no events to display at this time.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = eventList.map(event => {
+                const eventDate = new Date(event.date);
+                const day = eventDate.getDate();
+                const month = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                
+                return `
+                    <div class="event-card">
+                        <div class="event-header">
+                            <div class="event-date">
+                                <span class="event-day">${day}</span>
+                                <span class="event-month">${month}</span>
+                            </div>
+                            <div class="event-info">
+                                <div class="event-title">${event.title}</div>
+                                <div class="event-time">⏰ ${event.time}</div>
+                            </div>
+                        </div>
+                        <div class="event-body">
+                            <div class="event-location">📍 ${event.location}</div>
+                            <div class="event-description">${event.description || 'No description provided.'}</div>
+                            <span class="event-category">${event.category}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Empty State
+        function renderEmptyState() {
+            const emptyHTML = `
+                <div class="no-events">
+                    <div class="no-events-icon">📅</div>
+                    <h3>No Events Available</h3>
+                    <p>Please check back later for upcoming events.</p>
+                </div>
+            `;
+            
+            document.getElementById('calendarContent').innerHTML = emptyHTML;
+            document.getElementById('upcomingContent').innerHTML = emptyHTML;
+            document.getElementById('pastContent').innerHTML = emptyHTML;
+        }
+
+        // Switch View
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            if (view === 'calendar') {
+                document.getElementById('calendarView').classList.add('active');
+                event.target.classList.add('active');
+            } else if (view === 'upcoming') {
+                document.getElementById('upcomingView').classList.add('active');
+                event.target.classList.add('active');
+            } else if (view === 'past') {
+                document.getElementById('pastView').classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+
+        // Show Alert
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = `alert alert-${type} show`;
+            alertBox.textContent = message;
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
