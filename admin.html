@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay Calendar - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D32F2F;
+            --primary-dark: #B71C1C;
+            --secondary: #1976D2;
+            --accent: #FFC107;
+            --bg-main: #FFF8E1;
+            --bg-card: #FFFFFF;
+            --text-dark: #212121;
+            --text-light: #757575;
+            --border: #E0E0E0;
+            --success: #388E3C;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--bg-main) 0%, #FFFDE7 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(211, 47, 47, 0.02) 35px, rgba(211, 47, 47, 0.02) 70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--secondary) 50%, var(--accent) 100%);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .public-link {
+            background: var(--accent);
+            color: var(--text-dark);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .public-link:hover {
+            background: #FFD54F;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .admin-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #BDBDBD;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2E7D32;
+        }
+
+        .btn-delete {
+            background: #F44336;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .btn-delete:hover {
+            background: #D32F2F;
+        }
+
+        /* Settings Panel */
+        .settings-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #C8E6C9;
+            color: #2E7D32;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-error {
+            background: #FFCDD2;
+            color: #C62828;
+            border-left: 4px solid #F44336;
+        }
+
+        /* Event List (Admin) */
+        .event-list {
+            margin-top: 2rem;
+        }
+
+        .event-item {
+            background: var(--bg-main);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+            flex-wrap: wrap;
+        }
+
+        .event-item:hover {
+            box-shadow: 0 4px 12px var(--shadow);
+            transform: translateX(4px);
+        }
+
+        .event-item-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .event-item-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: var(--primary);
+        }
+
+        .event-item-details {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-light);
+        }
+
+        .no-events-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        small {
+            display: block;
+            margin-top: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .logo {
+                flex-direction: column;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .event-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .info-box {
+            background: #E3F2FD;
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box strong {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🔐</div>
+                    <div>
+                        <h1>Admin Panel</h1>
+                        <div class="subtitle">Barangay Calendar Management</div>
+                    </div>
+                </div>
+                <a href="index.html" class="public-link">👁️ View Public Calendar</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Alert Messages -->
+        <div id="alertBox" class="alert"></div>
+
+        <!-- Settings Section -->
+        <div class="settings-section">
+            <h3>🔧 Google Sheets Setup</h3>
+            <div class="info-box">
+                <strong>ℹ️ Important:</strong> The Sheet ID and API Key you save here will also be used by the public calendar (index.html). Both files share the same configuration stored in your browser.
+            </div>
+            <div class="form-group">
+                <label>Sheet ID</label>
+                <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+                <small>
+                    Find this in your sheet URL: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit
+                </small>
+            </div>
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter your Google Sheets API key">
+                <small>
+                    Get this from Google Cloud Console → APIs & Services → Credentials
+                </small>
+            </div>
+            <button class="btn btn-success" onclick="saveSettings()">💾 Save Settings</button>
+            
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; color: var(--text-dark);">📋 Required Sheet Structure</h4>
+                <p style="color: var(--text-light); margin-bottom: 0.5rem;">Your Google Sheet should have the following columns (exact names):</p>
+                <div class="code-block">
+Title | Date | Time | Location | Description | Category | Status
+                </div>
+                <p style="color: var(--text-light); margin-top: 1rem; font-size: 0.85rem;">
+                    • Date format: YYYY-MM-DD (e.g., 2026-03-15)<br>
+                    • Time format: HH:MM AM/PM (e.g., 10:00 AM)<br>
+                    • Category: Community, Sports, Health, Education, etc.<br>
+                    • Status: active or cancelled
+                </p>
+            </div>
+        </div>
+
+        <!-- Add Event Form -->
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>➕ Add New Event</h2>
+            </div>
+            <form id="eventForm" onsubmit="addEvent(event)">
+                <div class="form-group">
+                    <label>Event Title *</label>
+                    <input type="text" id="eventTitle" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time *</label>
+                        <input type="time" id="eventTime" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Location *</label>
+                    <input type="text" id="eventLocation" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="eventDescription"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="eventCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="Community">Community</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Health">Health</option>
+                            <option value="Education">Education</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Religious">Religious</option>
+                            <option value="Emergency">Emergency</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="eventStatus" required>
+                            <option value="active">Active</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">📅 Add Event</button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()" style="margin-left: 1rem;">🔄 Reset</button>
+            </form>
+        </div>
+
+        <!-- Manage Events -->
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>📋 Manage Events</h2>
+                <button class="btn btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
+            </div>
+            <div id="adminEventList" class="event-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading events...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            sheetId: localStorage.getItem('sheetId') || '',
+            apiKey: localStorage.getItem('apiKey') || ''
+        };
+
+        let events = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (config.sheetId && config.apiKey) {
+                loadEvents();
+            }
+            
+            // Set default values if available
+            if (config.sheetId) document.getElementById('sheetId').value = config.sheetId;
+            if (config.apiKey) document.getElementById('apiKey').value = config.apiKey;
+        });
+
+        // Save Settings
+        function saveSettings() {
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            if (!sheetId || !apiKey) {
+                showAlert('Please fill in both Sheet ID and API Key', 'error');
+                return;
+            }
+
+            config.sheetId = sheetId;
+            config.apiKey = apiKey;
+
+            localStorage.setItem('sheetId', sheetId);
+            localStorage.setItem('apiKey', apiKey);
+
+            showAlert('Settings saved successfully! Loading events...', 'success');
+            setTimeout(() => loadEvents(), 1000);
+        }
+
+        // Load Events from Google Sheets
+        async function loadEvents() {
+            if (!config.sheetId || !config.apiKey) {
+                showAlert('Please configure Google Sheets settings first', 'error');
+                return;
+            }
+
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A2:G?key=${config.apiKey}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data from Google Sheets');
+                }
+
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    events = [];
+                    renderAdminEventList();
+                    return;
+                }
+
+                events = data.values.map((row, index) => ({
+                    rowIndex: index + 2,
+                    title: row[0] || '',
+                    date: row[1] || '',
+                    time: row[2] || '',
+                    location: row[3] || '',
+                    description: row[4] || '',
+                    category: row[5] || 'Other',
+                    status: row[6] || 'active'
+                }));
+
+                renderAdminEventList();
+                showAlert('Events loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events: ' + error.message, 'error');
+            }
+        }
+
+        // Add Event to Google Sheets
+        async function addEvent(e) {
+            e.preventDefault();
+
+            if (!config.sheetId || !config.apiKey) {
+                showAlert('Please configure Google Sheets settings first', 'error');
+                return;
+            }
+
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const location = document.getElementById('eventLocation').value;
+            const description = document.getElementById('eventDescription').value;
+            const category = document.getElementById('eventCategory').value;
+            const status = document.getElementById('eventStatus').value;
+
+            // Convert time to AM/PM format
+            const timeFormatted = formatTime(time);
+
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A:G:append?valueInputOption=RAW&key=${config.apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        values: [[title, date, timeFormatted, location, description, category, status]]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add event to Google Sheets');
+                }
+
+                showAlert('Event added successfully!', 'success');
+                resetForm();
+                loadEvents();
+            } catch (error) {
+                console.error('Error adding event:', error);
+                showAlert('Error adding event: ' + error.message, 'error');
+            }
+        }
+
+        // Format time to AM/PM
+        function formatTime(time24) {
+            const [hours, minutes] = time24.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+
+        // Render Admin Event List
+        function renderAdminEventList() {
+            const container = document.getElementById('adminEventList');
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="no-events">
+                        <div class="no-events-icon">📋</div>
+                        <h3>No Events</h3>
+                        <p>Start by adding your first event above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort events by date (newest first for admin view)
+            const sortedEvents = [...events].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = sortedEvents.map(event => `
+                <div class="event-item">
+                    <div class="event-item-info">
+                        <div class="event-item-title">${event.title}</div>
+                        <div class="event-item-details">
+                            📅 ${event.date} | ⏰ ${event.time} | 📍 ${event.location} | 
+                            📂 ${event.category} | 
+                            <span style="color: ${event.status === 'active' ? 'green' : 'red'}; font-weight: 600;">
+                                ${event.status.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn btn-delete" onclick="deleteEvent(${event.rowIndex})">🗑️ Delete</button>
+                </div>
+            `).join('');
+        }
+
+        // Delete Event
+        async function deleteEvent(rowIndex) {
+            if (!confirm('Are you sure you want to delete this event?')) {
+                return;
+            }
+
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A${rowIndex}:G${rowIndex}:clear?key=${config.apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete event');
+                }
+
+                showAlert('Event deleted successfully!', 'success');
+                loadEvents();
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                showAlert('Error deleting event: ' + error.message, 'error');
+            }
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('eventForm').reset();
+        }
+
+        // Show Alert
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = `alert alert-${type} show`;
+            alertBox.textContent = message;
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
