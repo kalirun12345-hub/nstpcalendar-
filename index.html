@@ -226,6 +226,7 @@
             padding: 0.75rem;
             border-radius: 8px;
             backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
 
         .event-day {
@@ -251,14 +252,57 @@
         .event-title {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.5rem;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             letter-spacing: 1px;
+            line-height: 1.2;
         }
 
-        .event-time {
-            font-size: 0.85rem;
+        /* ── Time range pill ── */
+        .event-time-range {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(6px);
+        }
+
+        .event-time-range .tr-icon {
             opacity: 0.9;
-            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .event-time-range .tr-start {
+            font-weight: 700;
+        }
+
+        .event-time-range .tr-sep {
+            opacity: 0.7;
+            margin: 0 2px;
+        }
+
+        .event-time-range .tr-end {
+            opacity: 0.9;
+        }
+
+        /* Duration chip — shown only when both start & end are present */
+        .event-duration {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(255, 193, 7, 0.25);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 6px;
+            color: #FFF3CD;
         }
 
         .event-body {
@@ -277,7 +321,15 @@
             gap: 0.5rem;
             color: var(--text-dark);
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .event-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .event-category {
@@ -412,9 +464,9 @@
     <div class="container">
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchView('calendar')">📅 Calendar View</button>
-            <button class="tab-btn" onclick="switchView('upcoming')">⏰ Upcoming Events</button>
-            <button class="tab-btn" onclick="switchView('past')">📜 Past Events</button>
+            <button class="tab-btn active" onclick="switchView('calendar', this)">📅 Calendar View</button>
+            <button class="tab-btn" onclick="switchView('upcoming', this)">⏰ Upcoming Events</button>
+            <button class="tab-btn" onclick="switchView('past', this)">📜 Past Events</button>
         </div>
 
         <!-- Alert Messages -->
@@ -451,15 +503,21 @@
         </div>
 
         <footer>
-            <p>&copy; 2026 Barangay Calendar. Group 2 NSTP BSIS 1 - BATCH 2 - @BEC.</p>
+            <p>&copy; 2026 Barangay Calendar. All rights reserved.</p>
         </footer>
     </div>
 
     <script>
-        // Configuration - these should match the admin panel settings
+        // ============================================================
+        //  🔑 PUT YOUR KEYS HERE (same values as in admin.html)
+        // ============================================================
+        const SHEET_ID       = '1mnux_xV_laJiTBekxnYoU2i1C5pChQkGriUhvZtpXXk';
+        const API_KEY        = 'AIzaSyA7vAgB_YqRm_Sc8AMfOHpH3Mc89XT2T8o';
+        // ============================================================
+
         let config = {
-            sheetId: localStorage.getItem('sheetId') || '',
-            apiKey: localStorage.getItem('apiKey') || ''
+            sheetId: SHEET_ID,
+            apiKey:  API_KEY
         };
 
         let events = [];
@@ -467,11 +525,11 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadEvents();
-            // Refresh events every 5 minutes
-            setInterval(loadEvents, 300000);
+            setInterval(loadEvents, 300000); // refresh every 5 min
         });
 
         // Load Events from Google Sheets
+        // Sheet columns: Title(A) | Date(B) | Time(C) | EndTime(D) | Location(E) | Description(F) | Category(G) | Status(H)
         async function loadEvents() {
             if (!config.sheetId || !config.apiKey) {
                 showAlert('Calendar configuration is missing. Please contact the administrator.', 'error');
@@ -480,12 +538,10 @@
             }
 
             try {
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A2:G?key=${config.apiKey}`;
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/Sheet1!A2:H?key=${config.apiKey}`;
                 const response = await fetch(url);
                 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch data from Google Sheets');
-                }
+                if (!response.ok) throw new Error('Failed to fetch data from Google Sheets');
 
                 const data = await response.json();
                 
@@ -496,14 +552,15 @@
                 }
 
                 events = data.values.map((row, index) => ({
-                    rowIndex: index + 2,
-                    title: row[0] || '',
-                    date: row[1] || '',
-                    time: row[2] || '',
-                    location: row[3] || '',
-                    description: row[4] || '',
-                    category: row[5] || 'Other',
-                    status: row[6] || 'active'
+                    rowIndex:    index + 2,
+                    title:       row[0] || '',
+                    date:        row[1] || '',
+                    time:        row[2] || '',
+                    endTime:     row[3] || '',
+                    location:    row[4] || '',
+                    description: row[5] || '',
+                    category:    row[6] || 'Other',
+                    status:      row[7] || 'active'
                 }));
 
                 renderEvents();
@@ -514,27 +571,73 @@
             }
         }
 
+        // Calculate duration between two "H:MM AM/PM" strings → "X hr Y min"
+        function calcDuration(startStr, endStr) {
+            try {
+                const parse = (s) => {
+                    const [time, meridiem] = s.trim().split(' ');
+                    let [h, m] = time.split(':').map(Number);
+                    if (meridiem === 'PM' && h !== 12) h += 12;
+                    if (meridiem === 'AM' && h === 12) h = 0;
+                    return h * 60 + m;
+                };
+                const diff = parse(endStr) - parse(startStr);
+                if (diff <= 0) return null;
+                const hrs = Math.floor(diff / 60);
+                const mins = diff % 60;
+                if (hrs && mins) return `${hrs}h ${mins}m`;
+                if (hrs)        return `${hrs}h`;
+                return `${mins}m`;
+            } catch {
+                return null;
+            }
+        }
+
+        // Build the time-range HTML block for a card
+        function buildTimeRangeHTML(startTime, endTime) {
+            if (!startTime) return '';
+
+            if (!endTime) {
+                // Only start time
+                return `
+                    <div class="event-time-range">
+                        <span class="tr-icon">⏰</span>
+                        <span class="tr-start">${startTime}</span>
+                    </div>`;
+            }
+
+            const duration = calcDuration(startTime, endTime);
+            const durationChip = duration
+                ? `<span class="event-duration">🕐 ${duration}</span>`
+                : '';
+
+            return `
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:4px;">
+                    <div class="event-time-range">
+                        <span class="tr-icon">⏰</span>
+                        <span class="tr-start">${startTime}</span>
+                        <span class="tr-sep">→</span>
+                        <span class="tr-end">${endTime}</span>
+                    </div>
+                    ${durationChip}
+                </div>`;
+        }
+
         // Render Events
         function renderEvents() {
             const now = new Date();
             now.setHours(0, 0, 0, 0);
 
-            const activeEvents = events.filter(e => e.status === 'active');
+            const activeEvents   = events.filter(e => e.status === 'active');
             const upcomingEvents = activeEvents.filter(e => new Date(e.date) >= now);
-            const pastEvents = activeEvents.filter(e => new Date(e.date) < now);
+            const pastEvents     = activeEvents.filter(e => new Date(e.date) < now);
 
-            // Sort by date
             upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
-            pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+            pastEvents.sort((a, b)     => new Date(b.date) - new Date(a.date));
 
-            // Render calendar view (all active events)
-            renderEventCards('calendarContent', activeEvents);
-            
-            // Render upcoming events
-            renderEventCards('upcomingContent', upcomingEvents);
-            
-            // Render past events
-            renderEventCards('pastContent', pastEvents);
+            renderEventCards('calendarContent',  activeEvents);
+            renderEventCards('upcomingContent',  upcomingEvents);
+            renderEventCards('pastContent',      pastEvents);
         }
 
         // Render Event Cards
@@ -554,8 +657,9 @@
 
             container.innerHTML = eventList.map(event => {
                 const eventDate = new Date(event.date);
-                const day = eventDate.getDate();
+                const day   = eventDate.getDate();
                 const month = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                const timeRangeHTML = buildTimeRangeHTML(event.time, event.endTime);
                 
                 return `
                     <div class="event-card">
@@ -566,13 +670,15 @@
                             </div>
                             <div class="event-info">
                                 <div class="event-title">${event.title}</div>
-                                <div class="event-time">⏰ ${event.time}</div>
+                                ${timeRangeHTML}
                             </div>
                         </div>
                         <div class="event-body">
                             <div class="event-location">📍 ${event.location}</div>
                             <div class="event-description">${event.description || 'No description provided.'}</div>
-                            <span class="event-category">${event.category}</span>
+                            <div class="event-footer">
+                                <span class="event-category">${event.category}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -588,32 +694,18 @@
                     <p>Please check back later for upcoming events.</p>
                 </div>
             `;
-            
             document.getElementById('calendarContent').innerHTML = emptyHTML;
             document.getElementById('upcomingContent').innerHTML = emptyHTML;
-            document.getElementById('pastContent').innerHTML = emptyHTML;
+            document.getElementById('pastContent').innerHTML     = emptyHTML;
         }
 
         // Switch View
-        function switchView(view) {
-            document.querySelectorAll('.view-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+        function switchView(view, btn) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-            if (view === 'calendar') {
-                document.getElementById('calendarView').classList.add('active');
-                event.target.classList.add('active');
-            } else if (view === 'upcoming') {
-                document.getElementById('upcomingView').classList.add('active');
-                event.target.classList.add('active');
-            } else if (view === 'past') {
-                document.getElementById('pastView').classList.add('active');
-                event.target.classList.add('active');
-            }
+            document.getElementById(view + 'View').classList.add('active');
+            btn.classList.add('active');
         }
 
         // Show Alert
@@ -621,10 +713,7 @@
             const alertBox = document.getElementById('alertBox');
             alertBox.className = `alert alert-${type} show`;
             alertBox.textContent = message;
-
-            setTimeout(() => {
-                alertBox.classList.remove('show');
-            }, 5000);
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
         }
     </script>
 </body>
