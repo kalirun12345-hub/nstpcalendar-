@@ -551,17 +551,24 @@
                     return;
                 }
 
-                events = data.values.map((row, index) => ({
-                    rowIndex:    index + 2,
-                    title:       row[0] || '',
-                    date:        row[1] || '',
-                    time:        row[2] || '',
-                    endTime:     row[3] || '',
-                    location:    row[4] || '',
-                    description: row[5] || '',
-                    category:    row[6] || 'Other',
-                    status:      row[7] || 'active'
-                }));
+                events = data.values.map((row, index) => {
+                    // Google Sheets API omits trailing empty cells per row,
+                    // causing columns to shift left when EndTime is blank.
+                    // Padding to 8 keeps every index correct.
+                    const r = [...row];
+                    while (r.length < 8) r.push('');
+                    return {
+                        rowIndex:    index + 2,
+                        title:       r[0] || '',
+                        date:        r[1] || '',
+                        time:        r[2] || '',
+                        endTime:     r[3] || '',
+                        location:    r[4] || '',
+                        description: r[5] || '',
+                        category:    r[6] || 'Other',
+                        status:      r[7] || 'active'
+                    };
+                });
 
                 renderEvents();
             } catch (error) {
